@@ -1,0 +1,555 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Debugging using DWARF 粗翻 | 考拉のblog</title><meta name="keywords" content="elf"><meta name="author" content="赵树下"><meta name="copyright" content="赵树下"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="DWARF机翻，来自 chatgpt 和 谷歌翻译">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Debugging using DWARF 粗翻">
+<meta property="og:url" content="http://izbh.github.io/DWARF.html">
+<meta property="og:site_name" content="考拉のblog">
+<meta property="og:description" content="DWARF机翻，来自 chatgpt 和 谷歌翻译">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015738.jpg">
+<meta property="article:published_time" content="2023-04-07T17:04:47.000Z">
+<meta property="article:modified_time" content="2025-02-07T10:08:39.256Z">
+<meta property="article:author" content="赵树下">
+<meta property="article:tag" content="elf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015738.jpg"><link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/cxk-images/images/202210160213498.jpg"><link rel="canonical" href="http://izbh.github.io/DWARF"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: {"limitDay":100,"position":"top","messagePrev":"本文于","messageNext":"天前更新，文章中一些信息可能已经过时，仅供参考。"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-02-07 10:08:39'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    })(window)</script><meta name="generator" content="Hexo 5.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="author-avatar"><img class="avatar-img" src="https://cdn.jsdelivr.net/gh/cxk-images/images/202210160213498.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-file"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 读书</span></a></li><li><a class="site-page" href="/talk/"><i class="fa-fw fas fa-comment"></i><span> 自言自语</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 导航</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015738.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">考拉のblog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-file"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 读书</span></a></li><li><a class="site-page" href="/talk/"><i class="fa-fw fas fa-comment"></i><span> 自言自语</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 导航</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Debugging using DWARF 粗翻<a class="post-edit-link" href="https://github.com/IZBH/Blog/tree/master/source/_posts_posts/DWARF调试格式介绍.md" title="编辑" target="_blank"><i class="fas fa-pencil-alt"></i></a></h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-04-07T17:04:47.000Z" title="发表于 2023-04-07 17:04:47">2023-04-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-02-07T10:08:39.256Z" title="更新于 2025-02-07 10:08:39">2025-02-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E9%93%BE/">交叉编译链</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">11.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>34分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="DWARF-调试格式介绍-Debugging-With-Arbitrary-Record-Formats">DWARF 调试格式介绍(Debugging With Arbitrary Record Formats)</h1>
+<p>如果我们可以编写保证正确工作且永远不需要调试的程序，那就太好了。直到那个平静的日子，正常的编程周期将涉及编写程序、编译它、执行它，然后是（有点）可怕的调试它的灾难。然后重复直到程序按预期运行。</p>
+<p>可以通过插入打印所选变量值的代码来调试程序。 事实上，在某些情况下，例如调试内核驱动程序，这可能是首选方法。有一些低级调试器允许您逐条指令逐步执行可执行程序，以二进制形式显示寄存器和内存内容。</p>
+<p>但是使用源代码级调试器要容易得多，它允许您单步执行程序的源代码、设置断点、打印变量值，也许还有一些其他功能，例如允许您在调试器中调用程序中的函数。问题是如何协调编译器和调试器这两个完全不同的程序，使程序可以调试。</p>
+<h2 id="从源代码转换为可执行文件">从源代码转换为可执行文件</h2>
+<p>将程序从人类可读形式编译为处理器执行的二进制形式的过程非常复杂，但它本质上涉及将源代码连续重铸为越来越简单的形式，每一步都丢弃信息，直到，最终结果是处理器实际理解的简单操作、寄存器、内存地址和二进制值的序列。毕竟，处理器真的不关心你是使用面向对象编程、模板还是智能指针； 它只能理解对有限数量的包含二进制值的寄存器和内存位置的一组非常简单的操作。</p>
+<p>当编译器读取和解析程序的源代码时，它会收集有关程序的各种信息，例如声明或使用变量或函数的行号。语义分析扩展此信息以填充详细信息，例如变量类型和函数参数。优化可能会移动程序的某些部分、合并相似的部分、扩展内联函数或删除不需要的部分。最后，代码生成采用程序的这种内部表示并生成实际的机器指令。通常，机器代码还有另一次传递以执行所谓的“窥孔”优化，这可能会进一步重新排列或修改代码，例如，以消除重复指令。</p>
+<p>总而言之，编译器的任务是将精心制作且易于理解的源代码转换为高效但本质上难以理解的机器语言。编译器实现创建紧凑和快速代码的目标越好，结果就越难以理解</p>
+<p>在此翻译过程中，编译器收集有关程序的信息，这些信息将在以后调试程序时有用。做好这件事有两个挑战。首先是在这个过程的后期，编译器可能很难将它对程序所做的更改与程序员编写的原始源代码联系起来。例如，窥孔优化器可能会删除一条指令，因为它能够在 C++ 模板实例化中由内联函数生成的代码中切换测试顺序。当它隐喻地处理程序时，优化器可能很难将其对低级代码的操作与生成它的原始源代码联系起来。</p>
+<p>第二个挑战是如何足够详细地描述可执行程序及其与原始源代码的关系，以允许调试器为程序员提供有用的信息。同时，描述必须足够简洁，以免占用大量空间或需要大量处理器时间来解释。这就是 DWARF 调试格式的用武之地：它是可执行程序和源代码之间关系的紧凑表示，以一种调试器可以合理有效地处理的方式。</p>
+<h2 id="调试过程">调试过程</h2>
+<p>当程序员在调试器下运行程序时，有一些他或她可能想做的常见操作。其中最常见的是设置断点以在源代码中的特定点停止调试器，方法是指定行号或函数名。遇到此断点时，程序员通常希望显示局部或全局变量的值，或函数的参数。显示调用堆栈让程序员知道在有多个执行路径的情况下程序是如何到达断点的。查看此信息后，程序员可以要求调试器继续执行被测程序。</p>
+<p>有许多对调试有用的附加操作。例如，能够逐行单步执行程序，进入或单步执行被调用的函数可能会有所帮助。在模板或内联函数的每个实例处设置断点对于调试 C++ 程序可能很重要。恰好在函数结束之前停止会很有帮助，这样可以显示或更改返回值。有时程序员可能想绕过函数的执行，返回一个已知值而不是函数本应（可能不正确）计算的值。</p>
+<p>还有一些有用的数据相关操作。例如，显示变量的类型可以避免在源文件中查找类型。以不同的格式显示变量的值，或者以指定的格式显示内存或寄存器是有帮助的。</p>
+<p>有一些操作可以称为高级调试功能：例如，能够调试多线程程序或存储在只读内存中的程序。人们可能需要一个调试器（或其他一些程序分析工具）来跟踪某些代码段是否已被执行。一些调试器允许程序员调用被测试程序中的函数。在不久的过去，调试经过优化的程序被认为是一项高级功能。</p>
+<p>调试器的任务是以尽可能自然和易于理解的方式为程序员提供执行程序的视图，同时允许对其执行进行广泛的控制。这意味着调试器必须从根本上逆转编译器精心设计的大部分转换，将程序的数据和状态转换回程序员最初在程序源代码中使用的术语。</p>
+<p>调试数据格式（如 DWARF）的挑战在于使这成为可能甚至容易。</p>
+<h2 id="调试格式">调试格式</h2>
+<p>有几种调试格式：stabs、COFF、PECOFF、OMF、IEEE695 和 DWARF 的两个变体1，仅举一些常见的例子。我不打算详细描述这些。这里的目的只是提及它们以将 DWARF 调试格式放在上下文中。</p>
+<p>stabs 这个名字来自符号表字符串，因为调试数据最初是作为字符串保存在 Unix 的 a.out 目标文件的符号表中的。</p>
+<p>Stabs 将有关程序的信息编码为文本字符串。stabs 最初非常简单，但随着时间的推移已经演变成一种非常复杂、有时神秘且不太一致的调试格式。Stabs 没有标准化，也没有很好的文档记录2。 Sun Microsystems 对 stabs 进行了一些扩展。GCC 进行了其他扩展，同时试图对 Sun 扩展进行逆向工程。 尽管如此，stabs仍然被广泛使用。</p>
+<p>COFF 代表通用对象文件格式，起源于 Unix System V Release 3。基本的调试信息是用 COFF 格式定义的，但是由于 COFF 包括对命名部分的支持，因此 COFF 可以使用各种不同的调试格式，例如 stabs。COFF 最重要的问题是，尽管其名称中有 Common，但在使用该格式的每个体系结构中并不相同。COFF 有很多变体，包括 XCOFF（用于 IBM RS/6000）、ECOFF（用于 MIPS 和 Alpha）和 Windows PECOFF。这些变体的文档在不同程度上可用，但目标模块格式和调试信息都没有标准化。</p>
+<p>PECOFF 是 Microsoft Windows 从 Windows 95 开始使用的目标模块格式。它基于 COFF 格式，同时包含 COFF 调试数据和微软自己专有的 CodeView 或 CV4 调试数据格式。有关调试格式的文档既粗略又难以获得。</p>
+<p>OMF 代表 Object Module Format，是 CP/M、DOS 和 OS/2 系统以及少数嵌入式系统中使用的目标文件格式。OMF 为调试器定义了公共名称和行号信息，还可以包含 Microsoft CV、IBM PM 或 AIX 格式的调试数据。OMF 只为调试器提供最基本的支持。</p>
+<p>IEEE695 是 Microtec Research 和 HP 在 1980 年代后期为嵌入式环境联合开发的标准目标文件和调试格式。它于 1990 年成为 IEEE 标准。这是一个非常灵活的规范，旨在用于几乎任何机器架构。调试格式是块结构的，比其他格式更好地对应于源的组织。虽然它是一个 IEEE 标准，但在许多方面 IEEE 695 更像是专有格式。虽然原始标准很容易从 IEEE 获得，但 Microtec Research 进行了扩展以支持 C++ 和优化代码，这些代码很少被记录。IEEE 标准从未修订以纳入 Microtec Research 或其他更改。尽管是 IEEE 标准，但它的使用仅限于少数小型处理器。</p>
+<h2 id="DWARF-简史">DWARF 简史</h2>
+<h3 id="DWARF-1-─-Unix-SVR4-sdb-和-PLSIG">DWARF 1 ─ Unix SVR4 sdb 和 PLSIG</h3>
+<p>WARF3 由 Brian Russell 博士于 1988 年在贝尔实验室开发，用于 Unix System V Release 4 (SVR4) 中的 C 编译器和 sdb 调试器。编程语言特别兴趣小组 (PLSIG) 是 Unix International (UI) 的一部分，在 1992 年将 SVR4 生成的 DWARF 记录为 DWARF 版本 1。虽然最初的 DWARF 有几个明显的缺点，最明显的是它不是很紧凑，但 PLSIG 决定只对 SVR4 格式进行最小的修改来标准化。它在嵌入式领域得到广泛采用，至今仍在使用，尤其是对于小型处理器。</p>
+<h3 id="DWARF-2-─-PLSIG">DWARF 2 ─ PLSIG</h3>
+<p>PLSIG 继续开发和记录 DWARF 的扩展以解决几个问题，其中最重要的是减少生成的调试数据的大小。还增加了支持新语言的内容，例如即将到来的 C++ 语言。DWARF 第 2 版于 1993 年作为标准草案发布。举一个多米诺骨牌理论的例子，在 PLSIG 发布标准草案后不久，在摩托罗拉的 88000 微处理器中发现了致命缺陷。摩托罗拉拔掉了处理器的插头，这反过来导致了 Open88 的消亡，Open88 是一个使用 88000 开发计算机的公司联盟。Open88 又是 Unix International 的支持者，PLSIG 的赞助商，这导致 UI 被解散。当 UI 关闭时，PLSIG 只剩下一个邮件列表和各种 ftp 站点，这些站点具有各种版本的 DWARF 2 草案标准。最终标准从未发布。</p>
+<p>自从 Unix International 消失并且 PLSIG 解散后，几个组织独立地决定扩展 DWARF 1 和 2。其中一些扩展特定于单一架构，但其他扩展可能适用于任何架构。不幸的是，不同的组织没有在这些扩展上合作。有关扩展的文档通常参差不齐或难以获得。或者正如 GCC 开发人员可能开玩笑地建议的那样，这些扩展都有详细的文档：您所要做的就是阅读编译器源代码。DWARF 已经走上了追随 COFF 的道路，成为了一系列分歧实现的集合，而不是一个行业标准。</p>
+<h3 id="DWARF-3-─-Free-Standards-Group">DWARF 3 ─ Free Standards Group</h3>
+<p>尽管在PLSIG电子邮件列表上有几次关于DWARF的在线讨论（在UI消失后，该列表在X/Open [后来的Open Group]的支持下继续存在），但直到1999年底，很少有动力去修订（甚至完成）这份文件。当时，有兴趣将DWARF扩展以更好地支持HP / Intel IA-64体系结构，并更好地记录C ++程序使用的ABI。这两个工作分开进行，作者接任复兴后的DWARF委员会主席。</p>
+<p>经过超过18个月的开发工作和创建DWARF 3规范的草案，标准化工作遇到了一个可以称之为软补丁的问题。委员会（特别是本文作者）希望确保DWARF标准易于获取，并避免多个标准来源可能导致的可能分歧。DWARF委员会成为Free Standards Group的DWARF工作组于2003年。在2005年初，DWARF 3标准的活跃开发和澄清工作恢复，旨在解决标准中的任何未解决问题。公开审查草案于10月发布以征求公众意见，DWARF 3标准的最终版本于2005年12月发布。</p>
+<h3 id="DWARF-4-─-DWARF-Debugging-Format-Committee">DWARF 4 ─ DWARF Debugging Format Committee</h3>
+<p>在 2007 年自由标准组与开源开发实验室 (OSDL) 合并组成 Linux 基金会后，DWARF 委员会恢复了独立地位并创建了自己的网站 <a target="_blank" rel="noopener" href="http://dwarfstd.org">dwarfstd.org</a>。DWARF 第 4 版的工作于 2007 年开始。此版本阐明了 DWARF 表达式，添加了对 VLIW 架构的支持，改进了语言支持，对打包数据的通用支持，添加了一种通过消除重复类型描述来压缩调试数据的新技术，并添加了对基于配置文件的编译器优化的支持，以及广泛的编辑 的文件。DWARF 第 4 版标准在经过公开审查后于 2010 年 6 月发布。DWARF 第 5 版的工作于 2012 年 2 月开始。该版本预计将于 2014 年完成。</p>
+<h2 id="DWARF-Overview">DWARF Overview</h2>
+<p>大多数现代编程语言都是块结构的：每个实体（例如类定义或函数）都包含在另一个实体中。C 程序中的每个文件可能包含多个数据定义、多个变量定义和多个函数。在每个 C 函数中，可能有几个数据定义，后跟可执行语句。语句可以是复合语句，它又可以包含数据定义和可执行语句。这创建了词法范围，其中名称仅在定义它们的范围内为人所知。要在程序中查找特定符号的定义，首先查看当前范围，然后查看连续的封闭范围，直到找到该符号。在不同的作用域中可能有多个相同名称的定义。编译器非常自然地在内部将程序表示为树。</p>
+<p>DWARF 遵循此模型，因为它也是块结构的。DWARF 中的每个描述性实体（除了描述源文件的最顶层条目）都包含在一个父条目中，并且可能包含子实体。如果一个节点包含多个实体，它们都是兄弟，彼此相关。DWARF 对程序的描述是一个树结构，类似于编译器的内部树，其中每个节点都可以有孩子或兄弟姐妹。节点可以表示类型、变量或函数。这是一种紧凑的格式，其中仅提供描述程序的某个方面所需的信息。该格式可以以统一的方式扩展，因此调试器可以识别和忽略扩展，即使它可能不理解其含义。（这比大多数其他调试格式的情况要好得多，调试器在尝试读取无法识别的数据时会产生致命的困惑。）DWARF 还被设计成可扩展的，以描述任何机器架构上的几乎任何过程编程语言，而不是仅限于在有限范围的架构上描述一种语言或一种语言的一种版本。</p>
+<p>虽然 DWARF 通常与 ELF 目标文件格式相关联，但它独立于目标文件格式。它可以并且已经与其他目标文件格式一起使用。所需要的只是构成 DWARF 数据的不同数据部分在目标文件或可执行文件中是可识别的。DWARF 不会复制包含在目标文件中的信息，例如识别处理器体系结构或文件是以 bigendian 还是 littleendian 格式编写的。</p>
+<h2 id="Debugging-Information-Entry-DIE">Debugging Information Entry (DIE)</h2>
+<h3 id="标签和属性">标签和属性</h3>
+<p>DWARF中的基本描述实体是调试信息项（Debugging Information Entry，简称DIE）。一个DIE具有一个标记，指定DIE描述的内容，以及填充详细信息和进一步描述实体的属性列表。一个DIE（除了最顶层的DIE）被包含在或归属于一个父DIE，并且可能具有兄弟DIE或子DIE。属性可以包含各种值：常量（例如函数名称）、变量（例如函数的起始地址）或引用另一个DIE（例如函数返回值的类型）。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230403183723338.png" alt="image-20230403183723338"></p>
+<h3 id="DIE的类型">DIE的类型</h3>
+<p>DIE 可以分为两种一般类型。 那些描述数据（包括数据类型）和那些描述函数和其他可执行代码的。</p>
+<h3 id="描述数据和类型">描述数据和类型</h3>
+<p>大多数编程语言都有复杂的数据描述。它们有许多内置数据类型、指针、各种数据结构，通常还有创建新数据类型的方法。由于DWARF旨在与多种编程语言一起使用，因此它抽象出了这些基础概念，并提供了一种表示方法，可以用于所有支持的语言。基于硬件的主要类型是基础类型。其他数据类型是由这些基础类型的集合或组合构建而成。</p>
+<h3 id="基本类型">基本类型</h3>
+<p>每种编程语言都定义了一些基本的标量数据类型。例如，C和Java都定义了int和double类型。尽管Java为这些类型提供了完整的定义，但C仅指定了一些一般性特征，允许编译器选择最适合目标处理器的实际规格。一些语言，如Pascal，允许定义新的基本类型，例如，一个整数类型可以容纳0到100之间的整数值。Pascal不指定这应该如何实现。一个编译器可能将其实现为一个单字节，另一个可能使用16位整数，第三个可能将所有整数类型实现为32位值，无论它们是如何定义的。</p>
+<p>在DWARF Version 1和其他调试格式中，编译器和调试器应该共同理解int是16位、32位，甚至64位。当同一硬件支持不同大小的整数或者不同的编译器为同一目标处理器做出不同的实现决策时，这就变得很麻烦。这些假设通常没有记录，这使得不同编译器或调试器之间甚至是同一工具的不同版本之间难以兼容。</p>
+<p>DWARF基本类型提供了简单数据类型与它们在目标机器硬件上实现的最低级映射。这使得int的定义在Java和C中都是明确的，并允许使用不同的定义，甚至在同一个程序中也可以使用不同的定义。图2a显示了在典型的32位处理器上描述int的DIE。属性指定了名称（int）、编码（有符号二进制整数）和大小（4个字节）。图2b显示了16位处理器上int的类似定义。（在图2中，我们使用DWARF标准中定义的标记和属性名称，而不是在图1中使用的更非正式的名称。标记的名称都带有DW_TAG前缀，属性的名称带有DW_AT前缀。）</p>
+<p>基本类型允许编译器描述编程语言标量类型与其在处理器上实际实现之间的几乎任何映射。图3描述了一个存储在四字节字中高16位的16位整数值。在这个基本类型中，有一个位大小属性，指定该值为16位宽，偏移量从高位的零开始。</p>
+<p>DWARF基本类型允许描述多种不同的编码方式，包括地址、字符、定点、浮点和压缩十进制，除了二进制整数。仍然存在一些模糊性：例如，浮点数的实际编码未指定；这由硬件实际支持的编码确定。在一个支持IEEE-754标准的32位和64位浮点值的处理器中，“float”所代表的编码因值的大小而异。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230404151358363.png" alt="image-20230404151358363"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230404151415436.png" alt="image-20230404151415436"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230404151445312.png" alt="image-20230404151445312"></p>
+<h3 id="类型组合">类型组合</h3>
+<p>一个命名的变量由一个DIE描述，其中有多种属性，其中之一是对类型定义的引用。图4描述了一个名为x的整数变量。（暂时忽略描述变量的DIE通常包含的其他信息。）</p>
+<p>int类型的基本类型描述为一个占据4个字节的有符号二进制整数。变量x的DW_TAG_variable DIE指定了它的名称和类型属性，该类型属性指向基本类型DIE。为了清晰起见，在这个和接下来的例子中，DIEs按顺序标记；在实际的DWARF数据中，对DIE的引用是从编译单元的起始处的偏移量，可以引用之前定义的DIE，如图4所示，也可以引用稍后定义的DIE。一旦我们为int创建了一个基本类型DIE，同一编译单元中的任何变量都可以引用相同的DIE。</p>
+<p>DWARF 使用基本类型通过组合来构造其他数据类型定义。新类型是作为另一种类型的修改而创建的。例如，图 5 显示了一个指向典型 32 位机器上的 int 的指针。这个 DIE 定义了一个指针类型，指定它的大小为四个字节，并依次引用了 int 基类型。其他 DIE 描述 const 或 volatile 属性、C++ 引用类型或 C 限制类型。这些类型的 DIE 可以链接在一起以描述更复杂的数据类型，例如图 6 中描述的“const char **argv”。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230404153111442.png" alt="image-20230404153111442"></p>
+<h3 id="数组">数组</h3>
+<p>数组类型由一个DIE描述，该DIE定义数据是按列主序（如Fortan）还是按行主序（如C或C ++）存储的。数组的索引由子范围类型表示，该类型给出了每个维度的下限和上限。这使得DWARF能够描述C风格数组，其始终将零作为最低索引，以及Pascal或Ada中的数组，其可以具有任何低和高边界值。</p>
+<h3 id="结构、类、联合和接口">结构、类、联合和接口</h3>
+<p>大多数编程语言都允许程序员将数据组合成结构体（C 和 C++ 中称为 struct，C++ 中称为 class，Pascal 中称为 record）。结构体的每个组成部分通常都有唯一的名称，可以有不同的类型，每个部分都占用自己的空间。C 和 C++ 有 union，Pascal 有 variant record，它们类似于结构体，但组成部分占用相同的内存位置。Java 接口具有 C++ 类的子集属性，因为它只能具有抽象方法和常量数据成员。</p>
+<p>虽然每种语言都有自己的术语（如C++中将类的组成成员称为members，而Pascal中称为fields），但基础结构可以用DWARF来描述。DWARF使用C/C++/Java术语，包含了描述结构体、联合体、类和接口的DIE。这里我们将描述类DIE，但其他DIE的基本组织方式基本相同。</p>
+<p>类的DIE是描述该类每个成员的DIE的父节点。每个类都有一个名称和可能的其他属性。如果编译时知道实例的大小，则将具有一个字节大小属性。每个描述都非常类似于简单变量的描述，尽管可能有一些附加属性。例如，C ++允许程序员指定成员是公共的、私有的还是受保护的。这些用可访问性属性来描述。</p>
+<p>在C和C ++中，可以将位字段作为类成员，这些位字段不是简单变量。它们使用位偏移量描述，该偏移量从类实例的起始位置到位字段的最左侧位，使用位大小描述成员占用了多少位。</p>
+<h3 id="变量">变量</h3>
+<p>变量通常比较简单。它们有一个名称，表示可以包含某种值的一块内存（或寄存器）。变量可以包含的值的类型，以及对其修改的限制（例如，是否为 const）由变量的类型描述。</p>
+<p>变量的区别在于其值存储的位置和作用域。变量的作用域定义了变量在程序中的可知范围，这在某种程度上取决于变量的声明位置。在 C 中，在函数或块内声明的变量具有函数或块作用域。在函数外声明的变量具有全局或文件作用域。这允许在不同文件中定义具有相同名称的不同变量而不会冲突。它还允许不同的函数或编译引用同一个变量。DWARF 通过 (文件，行，列) 三元组记录了变量在源文件中的声明位置。</p>
+<p>DWARF将变量分为三个类别：常量、形式参数和变量。常量用于具有真正命名常量的语言，如Ada参数。 (C语言不包括常量作为语言的一部分。将变量声明为const只是表示您不能在不使用显式转换的情况下修改该变量。)形式参数代表传递给函数的值。稍后我们将回到这个问题。</p>
+<p>某些语言，如 C 或 C++（但不是 Pascal），允许在不定义变量的情况下声明它。这意味着应该在其他地方有一个真正的变量定义，希望是编译器或调试器可以找到的地方。描述变量声明的 DIE 提供了变量的描述，但实际上并没有告诉调试器它在哪里。</p>
+<p>大多数变量都有一个描述变量存储位置的位置属性。在最简单的情况下，变量存储在内存中并具有固定地址。但是许多变量，例如在 C 函数中声明的变量，是动态分配的，定位它们需要一些（通常是简单的）计算。例如，一个局部变量可能被分配在堆栈上，定位它可能就像在帧指针上添加一个固定的偏移量一样简单。在其他情况下，变量可以存储在寄存器中。其他变量可能需要更复杂的计算来定位数据。作为 C++ 类成员的变量可能需要更复杂的计算来确定基类在派生类中的位置。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230406151427698.png" alt="image-20230406151427698"></p>
+<h3 id="位置表达式">位置表达式</h3>
+<p>DWARF提供了一种非常通用的方案，用于描述如何定位一个变量所代表的数据。一个DWARF位置表达式包含一系列操作，告诉调试器如何定位数据。图7显示了三个变量a、b和c的DIE。 变量a在内存中有一个固定的位置，变量b在寄存器0中，变量c在当前函数堆栈帧内的偏移量为-12的位置。尽管a是最先声明的，但描述它的DIE是在所有函数之后生成的。a的实际位置将由链接器填充。</p>
+<p>DWARF的位置表达式可以包含一系列运算符和值，这些运算符和值由一个简单的堆栈机器进行求值。这可以是一个任意复杂的计算，具有广泛的算术运算、测试和分支操作、调用其他位置表达式进行求值以及访问处理器的内存或寄存器的操作。甚至还有用于描述分割并存储在不同位置的数据的操作，例如存储在内存和寄存器中的一些数据的结构。</p>
+<p>尽管这种极大的灵活性在实践中很少使用，但无论语言定义多么复杂或编译器的优化多么巧妙，位置表达式都应该允许描述变量数据的位置。</p>
+<h2 id="Describing-Executable-Code">Describing Executable Code</h2>
+<h3 id="函数和子程序">函数和子程序</h3>
+<p>DWARF把有返回值的函数和没有返回值的子程序视为同一种东西的变体。DWARF用子程序DIE来描述它们，略微偏离了C术语的根源。该DIE有一个名称、一个源位置三元组和一个属性，该属性指示子程序是否是外部的，即是否在当前编译之外可见。</p>
+<p>一个子程序DIE具有属性，给出子程序占用的低和高内存地址（如果是连续的），或者给出一组内存范围（如果函数不占用连续的内存地址）。除非另行指定，否则低PC地址被认为是程序的入口点。</p>
+<p>函数返回的值由类型属性给出。不返回值的子程序（例如C语言中的void函数）没有这个属性。DWARF不描述函数的调用约定，这由特定架构的应用程序二进制接口（ABI）定义。可能有属性可以帮助调试器定位子程序的数据或找到当前子程序的调用者。返回地址属性是一个位置表达式，指定调用者地址存储的位置。帧基础属性是一个位置表达式，用于计算函数的堆栈帧的地址。这些属性很有用，因为编译器可能会执行一些最常见的优化，如消除明确保存返回地址或帧指针的指令。</p>
+<p>子程序DIE拥有描述子程序的DIE。可以通过具有变量参数属性的变量DIE表示可能传递给函数的参数。如果参数是可选的或有默认值，则使用属性来表示。参数的DIE与函数的参数列表相同，但可能会插入其他DIE，例如用于定义参数使用的类型。</p>
+<p>函数可以定义局部或全局变量。这些变量的 DIE 遵循参数 DIE。许多语言允许嵌套词法块。这些由词法块 DIE 表示，而词法块 DIE 又可能拥有可变 DIE 或嵌套的词法块 DIE。</p>
+<p>这里有一个稍微长一些的例子。图8a展示了gcc中一个名为strndup的函数，用于复制一个字符串的源代码。图8b列出了为该文件生成的DWARF。与以前的例子一样，源代码的行信息和位置属性没有显示。</p>
+<p>在图8b中，DIE &lt;2&gt; 显示了 size_t 的定义，它是 unsigned int 的 typedef。这允许调试器将形式参数 n 的类型显示为 size_t，同时将其值显示为无符号整数。DIE &lt;5&gt; 描述了函数 strndup。它具有指向其兄弟 DIE &lt;10&gt; 的指针；以下所有 DIE 都是 Subprogram DIE 的子级。该函数返回 char 指针，在 DIE &lt;10&gt; 中描述。DIE &lt;5&gt; 还将子程序描述为外部和原型化，并为该程序给出低和高 PC 值。该程序的形式参数和局部变量在 DIE &lt;6&gt; 到 &lt;9&gt; 中描述。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230406153731044.png" alt="image-20230406153731044"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230406153752689.png" alt="image-20230406153752689"></p>
+<h3 id="编译单元">编译单元</h3>
+<p>最有趣的程序通常由多个文件组成。构成程序的每个源文件都是独立编译的，然后与系统库链接在一起形成程序。DWARF将每个单独编译的源文件称为编译单元。</p>
+<p>每个编译单元的DWARF数据以一个编译单元DIE开头。这个DIE包含有关编译的一般信息，包括源文件的目录和名称、所使用的编程语言、一个标识DWARF数据生产者的字符串，以及到DWARF数据部分的偏移量，以帮助定位行号和宏信息。</p>
+<p>如果编译单元是连续的（即一次性加载到内存中），则该单元的低内存地址和高内存地址都有对应的值。这使得调试器更容易确定哪个编译单元创建了特定内存地址的代码。如果编译单元不是连续的，则编译器和链接器提供代码所占用的内存地址列表。</p>
+<p>Compilation Unit DIE是描述编译单元的所有DIE的父级。通常，最先出现的DIE会描述数据类型，其次是全局数据，然后是组成源文件的函数。变量和函数的DIE的顺序与它们在源文件中出现的顺序相同。</p>
+<h3 id="数据编码">数据编码</h3>
+<p>从概念上讲，描述程序的DWARF数据是一棵树。每个DIE可能有一个兄弟和多个子DIE。每个DIE都有一个类型（称为其标记）和一些属性。每个属性由属性类型和值表示。不幸的是，这不是一种非常密集的编码方式。没有压缩，DWARF数据很难处理。</p>
+<p>DWARF提供了几种减小需要保存在目标文件中的数据大小的方法。其中第一种方法是通过按前缀顺序保存数据来“扁平化”树形结构。每种DIE类型被定义为可以有或者没有子节点。如果DIE没有子节点，则下一个DIE是它的兄弟节点。如果DIE有子节点，则下一个DIE是它的第一个子节点。其余的子节点被表示为这个第一个子节点的兄弟节点。这种方法可以消除兄弟或子DIE之间的链接。如果编译器的作者认为能够从一个DIE跳转到其兄弟节点而不必遍历其所有的子DIE（例如，在编译中跳转到下一个函数可能会有用），则可以添加一个兄弟节点属性。</p>
+<p>第二种压缩数据的方法是使用缩写。虽然DWARF允许生成各种DIE和属性，但大多数编译器只生成一组有限的DIE，所有DIE都具有相同的属性集。不保存TAG和属性-值对的值，而是只保存缩写表中的索引，然后是属性代码。每个缩写都给出TAG值、一个指示DIE是否有子级的标志，以及一个具有它期望的值类型的属性列表。图9显示了图8b中使用的形式参数DIE的缩写。在图8中，DIE&lt;6&gt;实际上是编码为所示的内容。这是减少需要保存的数据量的显着减少，但代价是增加了复杂性。</p>
+<p>较少使用的是DWARF版本3和4的功能，它们允许从一个编译单元引用存储在另一个编译单元或共享库中的DWARF数据。许多编译器为每个编译生成相同的缩写表和基础类型，而不管编译实际上是否使用所有缩写或类型。这些可以保存在共享库中，并由每个编译单元引用，而不是在每个编译单元中重复。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230406182846211.png" alt="image-20230406182846211"></p>
+<h2 id="其他-DWARF-数据">其他 DWARF 数据</h2>
+<h3 id="行号表">行号表</h3>
+<p>DWARF行表包含程序的可执行代码所包含的内存地址和相应的源代码行之间的映射关系。最简单的形式是，它可以看作是一个矩阵，其中一列包含内存地址，另一列包含该地址的源代码三元组（文件、行和列）。如果您想在特定行设置断点，该表会给您存储断点指令的内存地址。相反，如果您的程序在内存中的某个位置出现错误（例如，使用了错误的指针），则可以查找最接近该内存地址的源代码行。</p>
+<p>DWARF扩展了这一功能，增加了额外的列来传达程序的附加信息。随着编译器对程序进行优化，它可能会移动指令或删除它们。给定源语句的代码可能不会作为一系列机器指令存储，而是可能散布并与其他附近的源语句的指令交错。识别表示函数prolog的代码的结尾或epilog的开头可能是有用的，以便调试器可以在加载所有函数参数后停止，或在函数返回之前停止。一些处理器可以执行多个指令集，因此还有另一列指示存储在指定机器位置的指令集。</p>
+<p>正如您想象的那样，如果这个表以每个机器指令一行的方式存储，它将非常庞大。DWARF 通过将其编码为称为行号程序的指令序列来压缩此数据9。这些指令由简单的有限状态机解释，以重建完整的行号表。</p>
+<p>有限状态机使用一组默认值进行初始化。 行号表中的每一行都是通过执行行号程序的一个或多个操作码生成的。操作码通常非常简单：例如，向机器地址或行号添加一个值，设置列号，或设置一个标志，指示内存地址代表源语句的开始，结束 函数 prolog，或函数 epilog 的开始。一组特殊的操作码将最常见的操作（增加内存地址和增加或减少源代码行号）组合成一个操作码。</p>
+<p>最后，如果行号表的一行与前一行具有相同的源三元组，则在行号程序中不会为该行生成任何指令。图 10 列出了 strndup.c 的行号程序。请注意，仅存储表示语句开始指令的机器地址。编译器没有识别此代码中的基本块、函数序言的结尾或尾声的开始。该表在行号程序中仅以 31 个字节编码。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230406184736304.png" alt="image-20230406184736304"></p>
+<h3 id="宏信息">宏信息</h3>
+<p>大多数调试器在显示和调试使用宏的代码时会遇到很大的困难。用户看到的是原始的源文件，包含宏，而代码实际对应着宏展开后的内容。</p>
+<p>DWARF 包括程序中定义的宏的描述。这是非常基本的信息，但调试器可以使用它来显示宏的值或可能将宏翻译成相应的源语言。</p>
+<h3 id="调用帧信息">调用帧信息</h3>
+<p>每个处理器都有一定的调用函数和传递参数的方式，通常在ABI中定义。在最简单的情况下，这对于每个函数都是相同的，调试器知道如何精确地找到函数的参数值和返回地址。</p>
+<p>对于某些处理器，可能会根据函数的编写方式有不同的调用序列，例如如果有超过一定数量的参数。可能会根据操作系统有不同的调用序列。编译器将尝试优化调用序列以使代码更小、更快。一种常见的优化是让一个不调用其他函数的简单函数（叶子函数）使用其调用者的堆栈帧，而不是创建自己的堆栈帧。另一种优化可能是消除指向当前调用帧的寄存器。某些寄存器可能在调用期间被保留，而其他寄存器则不是。尽管调试器可能会推断出所有可能的调用序列或优化，但这既很繁琐又容易出错。一旦优化发生微小变化，调试器可能就无法遍历堆栈到调用函数了。</p>
+<p>DWARF调用帧信息（CFI）向调试器提供有关函数调用方式的足够信息，以便它可以找到函数的每个参数，找到当前的调用帧以及找到调用函数的调用帧。调试器使用此信息来“展开堆栈”，定位先前的函数，函数被调用的位置以及传递的值。</p>
+<p>和行号表一样，CFI被编码为一系列指令，用于生成一张表。这张表中每个地址的代码都有一行。第一列包含机器地址，而随后的列包含在该地址处执行指令时的机器寄存器的值。和行号表一样，如果实际创建这个表，它将非常庞大。幸运的是，两个机器指令之间的差异很小，因此CFI编码非常紧凑。</p>
+<h3 id="变长数据">变长数据</h3>
+<p>DWARF中使用整数值来表示从数据段偏移量到数组或结构的大小等一切内容。在大多数情况下，无法对这些值的大小进行限制。在经典的数据结构中，每个值都使用默认整数大小表示。由于大多数值只能用几个位表示，这意味着数据主要由零组成。</p>
+<p>DWARF定义了一个变长整数，称为小端Base 128（LEB128），通常用于压缩这些整数值。其中，低位包含数据，高位全部为零或者一。LEB128将这些值截断为低位的七个比特，如果剩余位都为零或者一（符号扩展位），那么这就是编码后的值。否则，将高位设置为一，输出这个字节，然后进入下一个低位的七个比特。其中，对于有符号的值，也有一个称为SLEB的编码方式。</p>
+<h3 id="缩小-DWARF-数据">缩小 DWARF 数据</h3>
+<p>与 DWARF 版本 1 等未编码格式相比，DWARF 使用的编码方案显着减少了调试信息的大小。不幸的是，对于许多程序，编译器生成的调试数据量可能变得非常大，通常比可执行代码和数据大得多。</p>
+<p>DWARF提供了进一步减少调试数据大小的方法。DWARF调试数据中的大多数字符串实际上是对单独的.debug_str节的引用。生成该节时可以消除重复的字符串。可能，链接器可以将多个编译的.debug_str节合并为一个较小的字符串节。</p>
+<p>许多程序包含在每个编译单元中重复的声明。例如，描述许多（可能是数千个）C++模板函数的调试数据可能在每个编译中重复。这些重复的描述可以保存在具有唯一名称的单独编译单元中的部分中。链接器可以使用COMDAT（公共数据）技术来消除重复的部分。</p>
+<p>许多程序引用了许多包含许多类型定义的头文件，导致DWARF数据包含成千上万的DIEs用于这些类型。编译器可以通过仅为编译中实际使用的类型生成DWARF来减小此数据的大小。使用DWARF版本4，类型定义可以保存到单独的.debug_types节中。编译单元包含一个DIE，该DIE引用此单独的类型单元以及这些类型的唯一64位签名。链接器可以识别定义相同类型单元的编译，并消除重复项。</p>
+<h2 id="ELF-sections">ELF sections</h2>
+<p>虽然DWARF定义的方式使得它可以与任何目标文件格式一起使用，但它通常与ELF一起使用。不同类型的DWARF数据存储在它们自己的节(section)中。这些节的名称都以&quot;.debug_&quot;开头。为了提高效率，大多数对DWARF数据的引用使用从当前编译数据的开头的偏移量(offset)。这避免了重新定位调试数据的需要，从而加快了程序的加载和调试速度。</p>
+<p>ELF 部分及其内容是:</p>
+<ul>
+<li>debug_abbrev	                                       在<code>.debug_info</code>节中使用的缩写</li>
+<li>debug_aranges                                         内存地址和编译之间的映射</li>
+<li>debug_frame                                             调用帧信息</li>
+<li>debug_info                                                 包含 DIE 的核心 DWARF 数据</li>
+<li>debug_line                                                  行号程序</li>
+<li>debug_loc                                                   位置描述</li>
+<li>debug_macinfo                                          宏描述</li>
+<li>debug_pubnames                                     全局对象和函数的查找表</li>
+<li>debug_pubtypes                                       全局类型的查找表</li>
+<li>debug_ranges                                            DIE 引用的地址范围</li>
+<li>debug_str                                                   用于 .debug_info 的字符串表。</li>
+<li>debug_types                                              类型描述</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>所以这就是DWRAF的要点。好吧，不完全是要点。DWARF调试信息的基本概念很简单。程序以树的形式描述，节点表示源代码中的各种函数、数据和类型，以一种紧凑的、与机器无关的语言方式进行描述。行表提供了可执行指令和生成它们的源代码之间的映射。CFI描述了如何展开堆栈。</p>
+<p>DWARF存在相当多的细微差别，因为它需要以机器无关的方式表达各种编程语言和不同的机器架构的许多不同细微差别。DWARF的未来方向是改进对优化代码的描述，以便调试器可以更好地导航先进的编译器优化所生成的代码。</p>
+<p>DWARF版本4标准的完整文档可以在DWARF网站（<a target="_blank" rel="noopener" href="http://dwarfstd.org">dwarfstd.org</a>）免费下载。此外，还有一个邮件列表用于关于DWARF的问题和讨论。注册邮件列表的说明也在网站上提供。</p>
+<h2 id="致谢">致谢</h2>
+<p>我要感谢Sun Microsystems的Chris Quenelle和HP公司的前员工Ron Brender，感谢他们对本文以前版本的评论和建议。也感谢Susan Heimlich提供的许多编辑意见。</p>
+<h2 id="使用-GCC-生成-DWARF">使用 GCC 生成 DWARF</h2>
+<p>使用gcc生成DWARF非常简单。只需指定-g选项以生成调试信息即可。使用objump命令并加上-h选项即可显示ELF节。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230407165724265.png" alt="image-20230407165724265"></p>
+<h2 id="使用-Readelf-打印-DWARF">使用 Readelf 打印 DWARF</h2>
+<p>Readelf 可以显示和解码对象或可执行文件中的 DWARF 数据。 选项是</p>
+<ul>
+<li>-w									显示所有 DWARF sections</li>
+<li>-w[liaprmfFso]       	   显示指定 sections
+<ul>
+<li>l                                line table</li>
+<li>i                                debug info</li>
+<li>a                               abbreviation table（缩写表）</li>
+<li>p                               public names</li>
+<li>r                                ranges</li>
+<li>m                              macro table</li>
+<li>f                                debug frame (encoded)</li>
+<li>F                                debug frame (decoded)</li>
+<li>s                                 string table</li>
+<li>o                                location lists</li>
+</ul>
+</li>
+</ul>
+<p>所有程序的DWARF列表都相当庞大，因此最好将readelf的输出重定向到一个文件，然后使用less或vi之类的编辑器浏览该文件。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">赵树下</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://izbh.github.io/DWARF.html">http://izbh.github.io/DWARF.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://izbh.github.io" target="_blank">考拉のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/elf/">elf</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015738.jpg" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2164266558.html"><img class="prev-cover" src="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217025107.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Quartus II 新建工程</div></div></a></div><div class="next-post pull-right"><a href="/3432760117.html"><img class="next-cover" src="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015824.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">在RISC-V微控制器上使用FreeRTOS粗翻</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/zsh.html" title="zsh配置"><img class="cover" src="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217022207.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="title">zsh配置</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#DWARF-%E8%B0%83%E8%AF%95%E6%A0%BC%E5%BC%8F%E4%BB%8B%E7%BB%8D-Debugging-With-Arbitrary-Record-Formats"><span class="toc-number">1.</span> <span class="toc-text">DWARF 调试格式介绍(Debugging With Arbitrary Record Formats)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E6%BA%90%E4%BB%A3%E7%A0%81%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%8F%AF%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">从源代码转换为可执行文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E8%BF%87%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">调试过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.3.</span> <span class="toc-text">调试格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DWARF-%E7%AE%80%E5%8F%B2"><span class="toc-number">1.4.</span> <span class="toc-text">DWARF 简史</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DWARF-1-%E2%94%80-Unix-SVR4-sdb-%E5%92%8C-PLSIG"><span class="toc-number">1.4.1.</span> <span class="toc-text">DWARF 1 ─ Unix SVR4 sdb 和 PLSIG</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DWARF-2-%E2%94%80-PLSIG"><span class="toc-number">1.4.2.</span> <span class="toc-text">DWARF 2 ─ PLSIG</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DWARF-3-%E2%94%80-Free-Standards-Group"><span class="toc-number">1.4.3.</span> <span class="toc-text">DWARF 3 ─ Free Standards Group</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DWARF-4-%E2%94%80-DWARF-Debugging-Format-Committee"><span class="toc-number">1.4.4.</span> <span class="toc-text">DWARF 4 ─ DWARF Debugging Format Committee</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DWARF-Overview"><span class="toc-number">1.5.</span> <span class="toc-text">DWARF Overview</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Debugging-Information-Entry-DIE"><span class="toc-number">1.6.</span> <span class="toc-text">Debugging Information Entry (DIE)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E7%AD%BE%E5%92%8C%E5%B1%9E%E6%80%A7"><span class="toc-number">1.6.1.</span> <span class="toc-text">标签和属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DIE%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.6.2.</span> <span class="toc-text">DIE的类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0%E6%95%B0%E6%8D%AE%E5%92%8C%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.6.3.</span> <span class="toc-text">描述数据和类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.6.4.</span> <span class="toc-text">基本类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E5%9E%8B%E7%BB%84%E5%90%88"><span class="toc-number">1.6.5.</span> <span class="toc-text">类型组合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E7%BB%84"><span class="toc-number">1.6.6.</span> <span class="toc-text">数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%84%E3%80%81%E7%B1%BB%E3%80%81%E8%81%94%E5%90%88%E5%92%8C%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.6.7.</span> <span class="toc-text">结构、类、联合和接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E9%87%8F"><span class="toc-number">1.6.8.</span> <span class="toc-text">变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%8D%E7%BD%AE%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.6.9.</span> <span class="toc-text">位置表达式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Describing-Executable-Code"><span class="toc-number">1.7.</span> <span class="toc-text">Describing Executable Code</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%92%8C%E5%AD%90%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.7.1.</span> <span class="toc-text">函数和子程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%8D%95%E5%85%83"><span class="toc-number">1.7.2.</span> <span class="toc-text">编译单元</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%BC%96%E7%A0%81"><span class="toc-number">1.7.3.</span> <span class="toc-text">数据编码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96-DWARF-%E6%95%B0%E6%8D%AE"><span class="toc-number">1.8.</span> <span class="toc-text">其他 DWARF 数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8F%B7%E8%A1%A8"><span class="toc-number">1.8.1.</span> <span class="toc-text">行号表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8F%E4%BF%A1%E6%81%AF"><span class="toc-number">1.8.2.</span> <span class="toc-text">宏信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E5%B8%A7%E4%BF%A1%E6%81%AF"><span class="toc-number">1.8.3.</span> <span class="toc-text">调用帧信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E9%95%BF%E6%95%B0%E6%8D%AE"><span class="toc-number">1.8.4.</span> <span class="toc-text">变长数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%A9%E5%B0%8F-DWARF-%E6%95%B0%E6%8D%AE"><span class="toc-number">1.8.5.</span> <span class="toc-text">缩小 DWARF 数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ELF-sections"><span class="toc-number">1.9.</span> <span class="toc-text">ELF sections</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%B4%E8%B0%A2"><span class="toc-number">1.11.</span> <span class="toc-text">致谢</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-GCC-%E7%94%9F%E6%88%90-DWARF"><span class="toc-number">1.12.</span> <span class="toc-text">使用 GCC 生成 DWARF</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-Readelf-%E6%89%93%E5%8D%B0-DWARF"><span class="toc-number">1.13.</span> <span class="toc-text">使用 Readelf 打印 DWARF</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By 赵树下</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">当我厌倦于追寻，我便学会一觅击中。当有一股逆风袭来，我便能抵御八面来风，驾舟而行</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><div class="js-pjax"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css"><script>(() => {
+  document.querySelectorAll('#article-container span.katex-display').forEach(item => {
+    btf.wrap(item, 'div', '', 'katex-wrap')
+  })
+})()</script><script>function loadValine () {
+  function initValine () {
+    let initData = {
+      el: '#vcomment',
+      appId: '3QWSvR7hxh88qvDtAYhxOcTx-MdYXbMMI',
+      appKey: 'bx9QuGPpYOusiHYiEy1xsMTa',
+      placeholder: '输入qq号将自动获取您的头像！',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'zh-CN',
+      recordIP: false,
+      serverURLs: 'https://3QWSvR7h.api.lncldglobal.com',
+      emojiCDN: '',
+      emojiMaps: {"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png"},
+      enableQQ: true,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+    
+    if (false) {
+      const otherData = false
+      initData = Object.assign(initData, otherData)
+    }
+    
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.17.0/js/md5.min.js"></script><script>window.addEventListener('load', () => {
+  const changeContent = (content) => {
+    if (content === '') return content
+
+    content = content.replace(/<img.*?src="(.*?)"?[^\>]+>/ig, '[图片]') // replace image link
+    content = content.replace(/<a[^>]+?href=["']?([^"']+)["']?[^>]*>([^<]+)<\/a>/gi, '[链接]') // replace url
+    content = content.replace(/<pre><code>.*?<\/pre>/gi, '[代码]') // replace code
+    content = content.replace(/<[^>]+>/g,"") // remove html tag
+
+    if (content.length > 150) {
+      content = content.substring(0,150) + '...'
+    }
+    return content
+  }
+
+  const getIcon = (icon, mail) => {
+    if (icon) return icon
+    let defaultIcon = '?d=monsterid'
+    let iconUrl = `https://gravatar.loli.net/avatar/${md5(mail.toLowerCase()) + defaultIcon}`
+    return iconUrl
+  }
+
+  const generateHtml = array => {
+    let result = ''
+
+    if (array.length) {
+      for (let i = 0; i < array.length; i++) {
+        result += '<div class=\'aside-list-item\'>'
+
+        if (true) {
+          const name = 'src'
+          result += `<a href='${array[i].url}' class='thumbnail'><img ${name}='${array[i].avatar}' alt='${array[i].nick}'></a>`
+        }
+
+        result += `<div class='content'>
+        <a class='comment' href='${array[i].url}'>${array[i].content}</a>
+        <div class='name'><span>${array[i].nick} / </span><time datetime="${array[i].date}">${btf.diffDate(array[i].date, true)}</time></div>
+        </div></div>`
+      }
+    } else {
+      result += '没有评论'
+    }
+
+    let $dom = document.querySelector('#card-newest-comments .aside-list')
+    $dom.innerHTML= result
+    window.lazyLoadInstance && window.lazyLoadInstance.update()
+    window.pjax && window.pjax.refresh($dom)
+  }
+
+  const getComment = () => {
+    const serverURL = 'https://3QWSvR7h.api.lncldglobal.com'
+
+    var settings = {
+      "method": "GET",
+      "headers": {
+        "X-LC-Id": '3QWSvR7hxh88qvDtAYhxOcTx-MdYXbMMI',
+        "X-LC-Key": 'bx9QuGPpYOusiHYiEy1xsMTa',
+        "Content-Type": "application/json"
+      },
+    }
+
+    fetch(`${serverURL}/1.1/classes/Comment?limit=3&order=-createdAt`,settings)
+      .then(response => response.json())
+      .then(data => {
+        const valineArray = data.results.map(function (e) {
+          return {
+            'avatar': getIcon(e.QQAvatar, e.mail),
+            'content': changeContent(e.comment),
+            'nick': e.nick,
+            'url': e.url + '#' + e.objectId,
+            'date': e.updatedAt,
+          }
+        })
+        saveToLocal.set('valine-newest-comments', JSON.stringify(valineArray), 10/(60*24))
+        generateHtml(valineArray)
+      }).catch(e => {
+        const $dom = document.querySelector('#card-newest-comments .aside-list')
+        $dom.innerHTML= "无法获取评论，请确认相关配置是否正确"
+      }) 
+  }
+
+  const newestCommentInit = () => {
+    if (document.querySelector('#card-newest-comments .aside-list')) {
+      const data = saveToLocal.get('valine-newest-comments')
+      if (data) {
+        generateHtml(JSON.parse(data))
+      } else {
+        getComment()
+      }
+    }
+  }
+
+  newestCommentInit()
+  document.addEventListener('pjax:complete', newestCommentInit)
+})</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/gh/metowolf/MetingJS@1.2/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = [
+  'title',
+  '#config-diff',
+  '#body-wrap',
+  '#rightside-config-hide',
+  '#rightside-config-show',
+  '.js-pjax'
+]
+
+if (false) {
+  pjaxSelectors.unshift('meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]')
+}
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"]):not([href="/music/"]):not([href="/no-pjax/"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  if (typeof gtag === 'function') {
+    gtag('config', '', {'page_path': window.location.pathname});
+  }
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // Analytics
+  if (false) {
+    MtaH5.pgv()
+  }
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+
+document.addEventListener('pjax:send', function () {
+  typeof preloader === 'object' && preloader.initLoading()
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

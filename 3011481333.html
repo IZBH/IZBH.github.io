@@ -1,0 +1,574 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>risc-plic-1.0.0规范 | 考拉のblog</title><meta name="keywords" content="RISC,PLIC"><meta name="author" content="赵树下"><meta name="copyright" content="赵树下"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="RISC-V中断控制器规范">
+<meta property="og:type" content="article">
+<meta property="og:title" content="risc-plic-1.0.0规范">
+<meta property="og:url" content="http://izbh.github.io/3011481333.html">
+<meta property="og:site_name" content="考拉のblog">
+<meta property="og:description" content="RISC-V中断控制器规范">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015854.JPG">
+<meta property="article:published_time" content="2023-07-10T19:56:17.000Z">
+<meta property="article:modified_time" content="2025-02-07T10:08:39.257Z">
+<meta property="article:author" content="赵树下">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="PLIC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015854.JPG"><link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/cxk-images/images/202210160213498.jpg"><link rel="canonical" href="http://izbh.github.io/3011481333"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: {"limitDay":100,"position":"top","messagePrev":"本文于","messageNext":"天前更新，文章中一些信息可能已经过时，仅供参考。"},
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-02-07 10:08:39'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    })(window)</script><meta name="generator" content="Hexo 5.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="author-avatar"><img class="avatar-img" src="https://cdn.jsdelivr.net/gh/cxk-images/images/202210160213498.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-file"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 读书</span></a></li><li><a class="site-page" href="/talk/"><i class="fa-fw fas fa-comment"></i><span> 自言自语</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 导航</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015854.JPG')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">考拉のblog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-file"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fas fa-book"></i><span> 读书</span></a></li><li><a class="site-page" href="/talk/"><i class="fa-fw fas fa-comment"></i><span> 自言自语</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 导航</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">risc-plic-1.0.0规范<a class="post-edit-link" href="https://github.com/IZBH/Blog/tree/master/source/_posts_posts/risc-plic-1.0.0.md" title="编辑" target="_blank"><i class="fas fa-pencil-alt"></i></a></h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-07-10T19:56:17.000Z" title="发表于 2023-07-10 19:56:17">2023-07-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-02-07T10:08:39.257Z" title="更新于 2025-02-07 10:08:39">2025-02-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">4.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="RISC-V-平台级中断控制器规范">RISC-V 平台级中断控制器规范</h1>
+<h2 id="介绍">介绍</h2>
+<p>该规范描述了根据 RISC-V 平台级中断控制器（PLIC）规范（已从 RISC-V Privileged Spec v1.11-draft 中移除）中定义的通用 PLIC 架构的操作参数，以在 RISC-V 系统的上下文中运行。PLIC 将各种设备中断多路复用到 Hart 上下文的外部中断线上，并具有对中断优先级的硬件支持。</p>
+<p>PLIC 支持最多 1023 个中断（0 为保留值）和 15872 个上下文，但实际中断和上下文的数量取决于 PLIC 的实现。</p>
+<p>然而，实现必须遵循 PLIC 操作参数中每个寄存器的偏移量。</p>
+<p>自称为 PLIC-Compliant 标准 PLIC 的实现应遵循下面各节中提到的实现方法。</p>
+<h2 id="中断目标和-Hart-上下文">中断目标和 Hart 上下文</h2>
+<p>中断目标通常是 hart 上下文，其中 hart 上下文是给定 hart 上的给定特权模式（尽管还有其他可能的中断目标，例如 DMA 引擎）。例如，在具有 2 路 SMT 的 4 核系统中，您有 8 个 hart，每个 hart 可能至少有两种特权模式：机器模式和管理模式（参考）。并非所有 hart 上下文都需要成为中断目标，特别是，如果处理器内核不支持将外部中断委派给低权限模式，则低权限 hart 上下文将不会成为中断目标。PLIC 生成的中断通知分别出现在 M/S 模式的 mip/sip 寄存器的 meip/seip 位中。</p>
+<p>如果外部中断已委托给低权限模式，则通知仅出现在低权限 xip 寄存器中。每个处理器内核都必须定义一个策略，说明内核上的多个 hart 上下文如何处理同时发生的活动中断。对于单个 hart 上下文堆栈的简单情况，一个用于<br>
+在每个受支持的特权模式下，较高特权上下文的中断可以抢占较低特权上下文的中断处理程序的执行。多线程处理器内核可以同时在不同的 hart 上下文中运行多个独立的中断处理程序。处理器核心还可以提供仅用于中断处理的 hart 上下文以减少中断服务延迟，并且这些可能会抢占同一核心上其他 hart 的中断处理程序。PLIC 独立处理每个中断目标，不考虑包含多个中断目标的组件使用的任何中断优先级方案。因此，PLIC 不提供中断抢占或嵌套的概念，因此这必须由托管多个中断目标上下文的内核来处理。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230601114320703.png" alt="image-20230601114320703"></p>
+<h2 id="中断路由">中断路由</h2>
+<p>中断网关负责将全局中断信号转换为通用中断请求格式，并控制中断请求流向 PLIC 内核。每个中断源最多有一个中断请求可以在任何时候在 PLIC 内核中挂起，通过设置源的 IP 位来指示。网关仅在收到服务于同一源的先前中断请求的中断处理程序已完成的通知后，才将新的中断请求转发到 PLIC 内核。</p>
+<p>如果全局中断源使用电平敏感中断，网关会将中断电平的第一个断言转换为中断请求，但此后网关不会再转发额外的中断请求，直到收到中断完成消息。在接收到中断完成消息时，如果中断是电平触发的并且中断仍然有效，则新的中断请求将被转发到 PLIC 内核。一旦转发到 PLIC 内核，网关就无法收回中断请求。如果一个电平敏感的中断源在 PLIC 内核接受请求之后和中断被服务之前取消断言中断，则中断请求仍然存在于 PLIC 内核的 IP 位中，并将由处理程序提供服务，然后处理程序必须 确定中断设备不再需要服务。</p>
+<p>如果全局中断源是边沿触发，网关会将第一个匹配的信号边沿转换为中断请求。根据设备和中断处理程序的设计，在发送中断请求和接收其处理程序完成通知之间，网关可能会忽略其他匹配边沿或增加挂起中断的计数器。在任何一种情况下，下一个中断请求都不会被转发到 PLIC 核心，直到接收到先前的完成消息。如果网关有挂起的中断计数器，当中断请求被 PLIC 内核接受时，计数器将递减。与专用线中断信号不同，消息信号中断 (MSI) 通过系统互连通过描述哪个中断被断言的消息包。消息被解码以选择中断网关，然后相关网关处理 MSI，类似于边沿触发中断。</p>
+<h2 id="中断通知">中断通知</h2>
+<p>每个中断目标在 PLIC 内核中都有一个外部中断挂起 (EIP) 位，指示相应的目标有一个挂起的中断等待服务。EIP 中的值可能会因 PLIC 内核中的状态变化而发生变化，由中断源、中断目标或其他代理操作 PLIC 中的寄存器值引起。EIP 中的值作为中断通知传送到目标目标。如果目标是 RISC-V hart 上下文，中断通知将根据 hart 上下文的特权级别到达 meip/seip 位。（在简单的系统中，中断通知将是连接到实现 hart 的处理器的简单线路。在更复杂的平台中，通知可能作为消息通过系统互连进行路由。）</p>
+<p>PLIC 硬件只支持中断的多播，这样所有启用的目标都将收到给定活动中断的中断通知。（多播提供快速响应，因为最快的响应者要求中断，但如果多个 harts 捕获一个只有一个可以成功要求的中断，则在高中断率情况下可能会造成浪费。软件可以将 PLIC IE 位作为每个中断处理程序的一部分进行调制，以提供替代策略，例如中断关联或循环单播。）</p>
+<p>根据平台架构和用于传输中断通知的方法，目标可能需要一些时间才能接收到这些通知。PLIC 保证最终将 EIP 中的所有状态更改传递给所有目标，前提是 PLIC 核心中没有干预活动。</p>
+<p>（中断通知中的值只能保证包含在过去某个时间点有效的 EIP 值。特别是，当第一个目标的通知仍在运行时，第二个目标可以响应并要求中断，这样当第一个目标试图要求中断时，它发现它在 PLIC 内核中没有活动中断。）</p>
+<h2 id="中断标识符-ID">中断标识符 (ID)</h2>
+<p>全局中断源分配有小的无符号整数标识符，从值 1 开始。中断 ID 0 保留表示“无中断”。当两个或多个中断源具有相同的分配优先级时，中断标识符也用于打破平局。 较小的中断 ID 值优先于较大的中断 ID 值。</p>
+<h2 id="中断流程">中断流程</h2>
+<p>下图显示了通过 PLIC 处理中断时在代理之间流动的消息。</p>
+<ul>
+<li>全局中断从它们的源发送到中断网关，该网关处理来自每个源的中断信号</li>
+<li>中断网关然后向 PLIC 内核发送单个中断请求，后者将这些请求锁存在内核中断挂起位 (IP) 中</li>
+<li>如果目标启用了任何挂起中断，并且挂起中断的优先级超过每个目标阈值，则 PLIC 核心将中断通知转发到一个或多个目标</li>
+<li>当目标接受外部中断时，它会发送一个中断声明请求，以从 PLIC 内核中检索为该目标挂起的最高优先级全局中断源的标识符。</li>
+<li>PLIC 内核然后清除相应的中断源挂起位。</li>
+<li>目标服务中断后，它向关联的中断网关发送中断完成消息</li>
+<li>中断网关现在可以将同一源的另一个中断请求转发给 PLIC。</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230601141826891.png" alt="image-20230601141826891"></p>
+<h2 id="RISC-V-PLIC-操作参数">RISC-V PLIC 操作参数</h2>
+<p>通用 PLIC 操作参数寄存器块在本规范中定义，它们是：</p>
+<ul>
+<li>中断优先级寄存器：每个中断源的中断优先级。</li>
+<li>中断挂起位寄存器：每个中断源的中断挂起状态。</li>
+<li>中断使能寄存器：每个上下文的中断源的使能。</li>
+<li>优先级阈值寄存器：每个上下文的中断优先级阈值。</li>
+<li>中断请求寄存器：获取每个context中断源ID的寄存器</li>
+<li>中断完成寄存器：向关联网关发送中断完成消息的寄存器。</li>
+</ul>
+<p>下图为PLIC操作参数框图，</p>
+<p><img src="https://cdn.jsdelivr.net/gh/cxk-images/images/image-20230601142346235.png" alt="image-20230601142346235"></p>
+<h2 id="内存映射">内存映射</h2>
+<p>PLIC 内存映射的基地址是特定于平台实现的。本章中指定的内存映射寄存器的宽度为 32 位。使用 LW 和 SW 指令以原子方式访问这些位。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">base + <span class="number">0x000000</span>: Reserved (interrupt source <span class="number">0</span> does <span class="keyword">not</span> exist)</span><br><span class="line">base + <span class="number">0x000004</span>: Interrupt source <span class="number">1</span> priority</span><br><span class="line">base + <span class="number">0x000008</span>: Interrupt source <span class="number">2</span> priority</span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x000FFC</span>: Interrupt source <span class="number">1023</span> priority</span><br><span class="line">base + <span class="number">0x001000</span>: Interrupt Pending bit <span class="number">0</span><span class="number">-31</span></span><br><span class="line">base + <span class="number">0x00107C</span>: Interrupt Pending bit <span class="number">992</span><span class="number">-1023</span></span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x002000</span>: Enable bits <span class="keyword">for</span> sources <span class="number">0</span><span class="number">-31</span> on context <span class="number">0</span></span><br><span class="line">base + <span class="number">0x002004</span>: Enable bits <span class="keyword">for</span> sources <span class="number">32</span><span class="number">-63</span> on context <span class="number">0</span></span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x00207C</span>: Enable bits <span class="keyword">for</span> sources <span class="number">992</span><span class="number">-1023</span> on context <span class="number">0</span></span><br><span class="line">base + <span class="number">0x002080</span>: Enable bits <span class="keyword">for</span> sources <span class="number">0</span><span class="number">-31</span> on context <span class="number">1</span></span><br><span class="line">base + <span class="number">0x002084</span>: Enable bits <span class="keyword">for</span> sources <span class="number">32</span><span class="number">-63</span> on context <span class="number">1</span></span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x0020FC</span>: Enable bits <span class="keyword">for</span> sources <span class="number">992</span><span class="number">-1023</span> on context <span class="number">1</span></span><br><span class="line">base + <span class="number">0x002100</span>: Enable bits <span class="keyword">for</span> sources <span class="number">0</span><span class="number">-31</span> on context <span class="number">2</span></span><br><span class="line">base + <span class="number">0x002104</span>: Enable bits <span class="keyword">for</span> sources <span class="number">32</span><span class="number">-63</span> on context <span class="number">2</span></span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x00217C</span>: Enable bits <span class="keyword">for</span> sources <span class="number">992</span><span class="number">-1023</span> on context <span class="number">2</span></span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x1F1F80</span>: Enable bits <span class="keyword">for</span> sources <span class="number">0</span><span class="number">-31</span> on context <span class="number">15871</span></span><br><span class="line">base + <span class="number">0x1F1F84</span>: Enable bits <span class="keyword">for</span> sources <span class="number">32</span><span class="number">-63</span> on context <span class="number">15871</span></span><br><span class="line">base + <span class="number">0x1F1FFC</span>: Enable bits <span class="keyword">for</span> sources <span class="number">992</span><span class="number">-1023</span> on context <span class="number">15871</span></span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x1FFFFC</span>: Reserved</span><br><span class="line">base + <span class="number">0x200000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">0</span></span><br><span class="line">base + <span class="number">0x200004</span>: Claim/complete <span class="keyword">for</span> context <span class="number">0</span></span><br><span class="line">base + <span class="number">0x200008</span>: Reserved</span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x200FFC</span>: Reserved</span><br><span class="line">base + <span class="number">0x201000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">1</span></span><br><span class="line">base + <span class="number">0x201004</span>: Claim/complete <span class="keyword">for</span> context <span class="number">1</span></span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x3FFF000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">15871</span></span><br><span class="line">base + <span class="number">0x3FFF004</span>: Claim/complete <span class="keyword">for</span> context <span class="number">15871</span></span><br><span class="line">base + <span class="number">0x3FFF008</span>: Reserved</span><br><span class="line">...</span><br><span class="line">base + <span class="number">0x3FFFFFC</span>: Reserved</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>以下部分描述了 PLIC 操作参数的控制寄存器块</p>
+<h2 id="中断优先级">中断优先级</h2>
+<p>中断优先级是小的无符号整数，具有平台特定的支持级别的最大数量。保留优先级值0表示“永不中断”，中断优先级随着整数值的增加而增加。每个全局中断源都有一个关联的中断优先级，保存在内存映射寄存器中。不同的中断源不需要支持同一组优先级值。一个有效的实现可以硬连接所有输入优先级。中断源优先级寄存器应该是 WARL 字段，以允许软件确定每个优先级规范（如果有）中读写位的数量和位置。为了简化支持的优先级值的发现，每个优先级寄存器必须支持寄存器内可变位中值的任意组合，即，如果寄存器中有两个可变位，则这些位中的所有四种值组合必须作为 有效的优先级。</p>
+<p>如果 PLIC 支持中断优先级，则可以通过写入其 32 位内存映射优先级寄存器来为每个 PLIC 中断源分配一个优先级。保留优先级值 0 表示“永不中断”并有效地禁用中断。优先级 1 是最低的活动优先级，而最高优先级取决于 PLIC 实现。相同优先级的全局中断之间的关系由中断 ID 打破；ID 最低的中断具有最高的有效优先级。</p>
+<p>PLIC 内存映射区域内中断源优先级块的基址固定为 0x000000。</p>
+<table>
+<thead>
+<tr>
+<th>PLIC 寄存器块名称</th>
+<th>功能</th>
+<th>以字节为单位的寄存器块大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中断源优先级</td>
+<td>中断源优先级 #0 到 #1023</td>
+<td>1024 * 4 = 4096(0x1000) bytes</td>
+<td>这是一个包含 PLIC 中断源优先级的连续内存块。该内存块中共有 1024 个中断源优先级。 中断源优先级 #0 被保留，表示它不存在。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="中断挂起位">中断挂起位</h2>
+<p>PLIC 内核中中断源挂起位的当前状态可以从挂起数组中读取，组织为 32 位寄存器。中断 ID N 的未决位存储在字 (N/32) 的位 (Nmod 32) 中。字 0 的位 0，表示不存在的中断源 0，硬接线为零。</p>
+<p>PLIC 内核中的挂起位可以通过设置关联的使能位然后执行声明来清除。</p>
+<p>PLIC Memory Map 区域内的 Interrupt Pending Bits 块的基地址固定为 0x001000。</p>
+<table>
+<thead>
+<tr>
+<th>PLIC 寄存器块名称</th>
+<th>功能</th>
+<th>以字节为单位的寄存器块大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中断挂起位</td>
+<td>中断源#0 到#N 的中断挂起位</td>
+<td>1024 / 8 =128(0x80) 字节</td>
+<td>这是一个连续的内存块，包含 PLIC 中断挂起位。每个中断挂起位占用该寄存器块的 1 位。</td>
+</tr>
+</tbody>
+</table>
+<p>PLIC 中断挂起位内存映射</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x001000</span>: Interrupt Source #<span class="number">0</span> to #<span class="number">31</span> Pending Bits</span><br><span class="line">...</span><br><span class="line"><span class="number">0x00107C</span>: Interrupt Source #<span class="number">992</span> to #<span class="number">1023</span> Pending Bits</span><br></pre></td></tr></table></figure>
+<h2 id="中断使能">中断使能</h2>
+<p>每个全局中断都可以通过设置启用寄存器中的相应位来启用。启用寄存器作为 32 位寄存器的连续数组进行访问，其使用方式与中断挂起位相同。使能寄存器 0 的位 0 表示不存在的中断 ID 0，并硬连线为 0。PLIC 有 15872 个上下文中断启用块。</p>
+<p>PLIC 如何为上下文（Hart 和特权模式）组织中断超出了 RISC-V PLIC 规范范围，但它必须在供应商的 PLIC 规范中进行规范。</p>
+<p>（在某些中断源只能路由到目标子集的情况下，大量潜在的 IE 位可能会硬连线为零。对于具有固定中断路由的嵌入式设备，可能会有更多位连接到 1。中断优先级、阈值和 hart 内部中断屏蔽在忽略外部中断方面提供了相当大的灵活性，即使始终启用全局中断源也是如此。）</p>
+<p>PLIC Memory Map 区域内的 Interrupt Enable Bits 块的基地址固定为 0x002000。</p>
+<table>
+<thead>
+<tr>
+<th>PLIC 寄存器块名称</th>
+<th>功能</th>
+<th>以字节为单位的寄存器块大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中断使能位</td>
+<td>15872 上下文的中断源 #0 到 #1023 的中断启用位</td>
+<td>1024 / 8) * 15872 = 2031616(0x1f0000) 字节</td>
+<td>这是一个连续的内存块，包含 15872 个上下文的 PLIC 中断启用位。每个中断使能位占用该寄存器块的 1 位，总共 15872 个中断使能位块</td>
+</tr>
+</tbody>
+</table>
+<p>PLIC 中断使能位内存映射</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x002000</span>: Interrupt Source #<span class="number">0</span> to #<span class="number">31</span> Enable Bits on context <span class="number">0</span></span><br><span class="line">...</span><br><span class="line"><span class="number">0x00207C</span>: Interrupt Source #<span class="number">992</span> to #<span class="number">1023</span> Enable Bits on context <span class="number">0</span></span><br><span class="line"><span class="number">0x002080</span>: Interrupt Source #<span class="number">0</span> to #<span class="number">31</span> Enable Bits on context <span class="number">1</span></span><br><span class="line">...</span><br><span class="line"><span class="number">0x0020FC</span>: Interrupt Source #<span class="number">992</span> to #<span class="number">1023</span> Enable Bits on context <span class="number">1</span></span><br><span class="line"><span class="number">0x002100</span>: Interrupt Source #<span class="number">0</span> to #<span class="number">31</span> Enable Bits on context <span class="number">2</span></span><br><span class="line">...</span><br><span class="line"><span class="number">0x00217C</span>: Interrupt Source #<span class="number">992</span> to #<span class="number">1023</span> Enable Bits on context <span class="number">2</span></span><br><span class="line"><span class="number">0x002180</span>: Interrupt Source #<span class="number">0</span> to #<span class="number">31</span> Enable Bits on context <span class="number">3</span></span><br><span class="line">...</span><br><span class="line"><span class="number">0x0021FC</span>: Interrupt Source #<span class="number">992</span> to #<span class="number">1023</span> Enable Bits on context <span class="number">3</span></span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line"><span class="number">0x1F1F80</span>: Interrupt Source #<span class="number">0</span> to #<span class="number">31</span> on context <span class="number">15871</span></span><br><span class="line">...</span><br><span class="line"><span class="number">0x1F1FFC</span>: Interrupt Source #<span class="number">992</span> to #<span class="number">1023</span> on context <span class="number">15871</span></span><br></pre></td></tr></table></figure>
+<h2 id="优先级阈值">优先级阈值</h2>
+<p>PLIC 提供了基于上下文的阈值寄存器，用于设置每个上下文的中断优先级阈值。阈值寄存器是一个 WARL 字段。PLIC 将屏蔽优先级小于或等于阈值的所有 PLIC 中断。例如，零阈值允许所有具有非零优先级的中断。</p>
+<p>优先级阈值寄存器块的基地址位于 4K 对齐，从偏移量 0x200000 开始。</p>
+<table>
+<thead>
+<tr>
+<th>PLIC 寄存器块名称</th>
+<th>功能</th>
+<th>以字节为单位的寄存器块大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>优先级阈值</td>
+<td>15872 上下文的优先级阈值</td>
+<td>4096 * 15872 = 65011712(0x3e00000) 字节</td>
+<td>这是每个上下文的优先级阈值设置寄存器</td>
+</tr>
+</tbody>
+</table>
+<p>PLIC 中断优先级阈值内存映射</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x200000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">0</span></span><br><span class="line"><span class="number">0x201000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">1</span></span><br><span class="line"><span class="number">0x202000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">2</span></span><br><span class="line"><span class="number">0x203000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">3</span></span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line"><span class="number">0x3FFF000</span>: Priority threshold <span class="keyword">for</span> context <span class="number">15871</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="中断声明进程">中断声明进程</h2>
+<p>在目标收到中断通知后的某个时间，它可能会决定为中断服务。目标向 PLIC 核心发送中断请求消息，该消息通常作为非幂等内存映射 I/O 控制寄存器读取来实现。收到声明消息后，PLIC 核心将自动确定目标的最高优先级挂起中断的 ID，然后清除相应源的 IP 位。然后 PLIC 内核会将 ID 返回给目标。如果在服务声明时目标没有挂起的中断，则 PLIC 核心将返回一个 ID 零。</p>
+<p>在最高优先级的挂起中断被目标声明并且相应的 IP 位被清除后，其他较低优先级的挂起中断可能对目标可见，因此 PLIC EIP 位可能不会在声明后被清除。中断处理程序可以在退出处理程序之前检查本地 meip/seip/ueip 位，以允许更有效地服务其他中断，而无需先恢复中断上下文并采取另一个中断陷阱。</p>
+<p>即使未设置 EIP，hart 执行索赔始终是合法的。特别是，hart 可以将阈值设置为最大值以禁用中断通知，而是使用定期声明请求轮询活动中断，尽管实现轮询的更简单方法是清除相应 xie 寄存器中的外部中断启用以实现特权模式 X。</p>
+<p>PLIC 可以通过读取请求/完成寄存器来执行中断请求，该寄存器返回最高优先级挂起中断的 ID，如果没有挂起中断，则返回零。成功的声明还将自动清除中断源上相应的挂起位。PLIC可以随时进行claim操作，claim操作不受优先级阈值寄存器设置的影响。</p>
+<p>中断声明进程寄存器是基于上下文的，位于 (4K 对齐 + 4) 从偏移量 0x200000 开始。</p>
+<table>
+<thead>
+<tr>
+<th>PLIC 寄存器块名称</th>
+<th>功能</th>
+<th>以字节为单位的寄存器块大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中断请求寄存器</td>
+<td>15872 上下文的中断声明过程</td>
+<td>4096 * 15872 = 65011712(0x3e00000) bytes</td>
+<td>这是用于获取每个上下文的中断 ID 的寄存器</td>
+</tr>
+</tbody>
+</table>
+<p>PLIC 中断声明进程内存映射</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x200004</span>: Interrupt Claim Process <span class="keyword">for</span> context <span class="number">0</span></span><br><span class="line"><span class="number">0x201004</span>: Interrupt Claim Process <span class="keyword">for</span> context <span class="number">1</span></span><br><span class="line"><span class="number">0x202004</span>: Interrupt Claim Process <span class="keyword">for</span> context <span class="number">2</span></span><br><span class="line"><span class="number">0x203004</span>: Interrupt Claim Process <span class="keyword">for</span> context <span class="number">3</span></span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line"><span class="number">0x3FFF004</span>: Interrupt Claim Process <span class="keyword">for</span> context <span class="number">15871</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="中断完成">中断完成</h2>
+<p>PLIC 通过将从声明中接收到的中断 ID 写入声明/完成寄存器来表示它已完成执行中断处理程序。PLIC 不检查完成 ID 是否与该目标的最后一个声明 ID 相同。如果完成 ID 与当前为目标启用的中断源不匹配，则完成将被静默忽略。</p>
+<p>在处理程序完成中断服务后，必须向相关网关发送中断完成消息，通常作为对非幂等内存映射 I/O 控制寄存器的写入。网关只会在收到完成消息后将额外的中断转发给 PLIC 内核。</p>
+<p>中断完成寄存器是基于上下文的，与中断声明处理寄存器位于同一地址，该寄存器位于 (4K 对齐 + 4) 从偏移量 0x200000 开始。</p>
+<table>
+<thead>
+<tr>
+<th>PLIC 寄存器块名称</th>
+<th>功能</th>
+<th>以字节为单位的寄存器块大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中断完成寄存器</td>
+<td>15872 上下文的中断完成</td>
+<td>4096 * 15872 = 65011712(0x3e000 00) bytes</td>
+<td>这是要写入以完成中断过程的寄存器</td>
+</tr>
+</tbody>
+</table>
+<p>PLIC 中断完成内存映射</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x200004</span>: Interrupt Completion <span class="keyword">for</span> context <span class="number">0</span></span><br><span class="line"><span class="number">0x201004</span>: Interrupt Completion <span class="keyword">for</span> context <span class="number">1</span></span><br><span class="line"><span class="number">0x202004</span>: Interrupt Completion <span class="keyword">for</span> context <span class="number">2</span></span><br><span class="line"><span class="number">0x203004</span>: Interrupt Completion <span class="keyword">for</span> context <span class="number">3</span></span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line"><span class="number">0x3FFF004</span>: Interrupt Completion <span class="keyword">for</span> context <span class="number">15871</span></span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">赵树下</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://izbh.github.io/3011481333.html">http://izbh.github.io/3011481333.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://izbh.github.io" target="_blank">考拉のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/RISC-V/">RISC-V</a><a class="post-meta__tags" href="/tags/PLIC/">PLIC</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015854.JPG" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/3432760117.html"><img class="prev-cover" src="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015824.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">在RISC-V微控制器上使用FreeRTOS粗翻</div></div></a></div><div class="next-post pull-right"><a href="/zsh.html"><img class="next-cover" src="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217022207.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">zsh配置</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/3432760117.html" title="在RISC-V微控制器上使用FreeRTOS粗翻"><img class="cover" src="https://cdn.jsdelivr.net/gh/cxk-images/images/images20210217015824.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-10</div><div class="title">在RISC-V微控制器上使用FreeRTOS粗翻</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#RISC-V-%E5%B9%B3%E5%8F%B0%E7%BA%A7%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8%E8%A7%84%E8%8C%83"><span class="toc-number">1.</span> <span class="toc-text">RISC-V 平台级中断控制器规范</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E7%9B%AE%E6%A0%87%E5%92%8C-Hart-%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">1.2.</span> <span class="toc-text">中断目标和 Hart 上下文</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E8%B7%AF%E7%94%B1"><span class="toc-number">1.3.</span> <span class="toc-text">中断路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E9%80%9A%E7%9F%A5"><span class="toc-number">1.4.</span> <span class="toc-text">中断通知</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%A0%87%E8%AF%86%E7%AC%A6-ID"><span class="toc-number">1.5.</span> <span class="toc-text">中断标识符 (ID)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%B5%81%E7%A8%8B"><span class="toc-number">1.6.</span> <span class="toc-text">中断流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RISC-V-PLIC-%E6%93%8D%E4%BD%9C%E5%8F%82%E6%95%B0"><span class="toc-number">1.7.</span> <span class="toc-text">RISC-V PLIC 操作参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84"><span class="toc-number">1.8.</span> <span class="toc-text">内存映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E4%BC%98%E5%85%88%E7%BA%A7"><span class="toc-number">1.9.</span> <span class="toc-text">中断优先级</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%8C%82%E8%B5%B7%E4%BD%8D"><span class="toc-number">1.10.</span> <span class="toc-text">中断挂起位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E4%BD%BF%E8%83%BD"><span class="toc-number">1.11.</span> <span class="toc-text">中断使能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7%E9%98%88%E5%80%BC"><span class="toc-number">1.12.</span> <span class="toc-text">优先级阈值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%A3%B0%E6%98%8E%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.13.</span> <span class="toc-text">中断声明进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%AE%8C%E6%88%90"><span class="toc-number">1.14.</span> <span class="toc-text">中断完成</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By 赵树下</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">当我厌倦于追寻，我便学会一觅击中。当有一股逆风袭来，我便能抵御八面来风，驾舟而行</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    let initData = {
+      el: '#vcomment',
+      appId: '3QWSvR7hxh88qvDtAYhxOcTx-MdYXbMMI',
+      appKey: 'bx9QuGPpYOusiHYiEy1xsMTa',
+      placeholder: '输入qq号将自动获取您的头像！',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'zh-CN',
+      recordIP: false,
+      serverURLs: 'https://3QWSvR7h.api.lncldglobal.com',
+      emojiCDN: '',
+      emojiMaps: {"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png"},
+      enableQQ: true,
+      path: window.location.pathname,
+    }
+
+    if (true) { 
+      initData.requiredFields= ('nick,mail'.split(','))
+    }
+    
+    if (false) {
+      const otherData = false
+      initData = Object.assign(initData, otherData)
+    }
+    
+    const valine = new Valine(initData)
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.17.0/js/md5.min.js"></script><script>window.addEventListener('load', () => {
+  const changeContent = (content) => {
+    if (content === '') return content
+
+    content = content.replace(/<img.*?src="(.*?)"?[^\>]+>/ig, '[图片]') // replace image link
+    content = content.replace(/<a[^>]+?href=["']?([^"']+)["']?[^>]*>([^<]+)<\/a>/gi, '[链接]') // replace url
+    content = content.replace(/<pre><code>.*?<\/pre>/gi, '[代码]') // replace code
+    content = content.replace(/<[^>]+>/g,"") // remove html tag
+
+    if (content.length > 150) {
+      content = content.substring(0,150) + '...'
+    }
+    return content
+  }
+
+  const getIcon = (icon, mail) => {
+    if (icon) return icon
+    let defaultIcon = '?d=monsterid'
+    let iconUrl = `https://gravatar.loli.net/avatar/${md5(mail.toLowerCase()) + defaultIcon}`
+    return iconUrl
+  }
+
+  const generateHtml = array => {
+    let result = ''
+
+    if (array.length) {
+      for (let i = 0; i < array.length; i++) {
+        result += '<div class=\'aside-list-item\'>'
+
+        if (true) {
+          const name = 'src'
+          result += `<a href='${array[i].url}' class='thumbnail'><img ${name}='${array[i].avatar}' alt='${array[i].nick}'></a>`
+        }
+
+        result += `<div class='content'>
+        <a class='comment' href='${array[i].url}'>${array[i].content}</a>
+        <div class='name'><span>${array[i].nick} / </span><time datetime="${array[i].date}">${btf.diffDate(array[i].date, true)}</time></div>
+        </div></div>`
+      }
+    } else {
+      result += '没有评论'
+    }
+
+    let $dom = document.querySelector('#card-newest-comments .aside-list')
+    $dom.innerHTML= result
+    window.lazyLoadInstance && window.lazyLoadInstance.update()
+    window.pjax && window.pjax.refresh($dom)
+  }
+
+  const getComment = () => {
+    const serverURL = 'https://3QWSvR7h.api.lncldglobal.com'
+
+    var settings = {
+      "method": "GET",
+      "headers": {
+        "X-LC-Id": '3QWSvR7hxh88qvDtAYhxOcTx-MdYXbMMI',
+        "X-LC-Key": 'bx9QuGPpYOusiHYiEy1xsMTa',
+        "Content-Type": "application/json"
+      },
+    }
+
+    fetch(`${serverURL}/1.1/classes/Comment?limit=3&order=-createdAt`,settings)
+      .then(response => response.json())
+      .then(data => {
+        const valineArray = data.results.map(function (e) {
+          return {
+            'avatar': getIcon(e.QQAvatar, e.mail),
+            'content': changeContent(e.comment),
+            'nick': e.nick,
+            'url': e.url + '#' + e.objectId,
+            'date': e.updatedAt,
+          }
+        })
+        saveToLocal.set('valine-newest-comments', JSON.stringify(valineArray), 10/(60*24))
+        generateHtml(valineArray)
+      }).catch(e => {
+        const $dom = document.querySelector('#card-newest-comments .aside-list')
+        $dom.innerHTML= "无法获取评论，请确认相关配置是否正确"
+      }) 
+  }
+
+  const newestCommentInit = () => {
+    if (document.querySelector('#card-newest-comments .aside-list')) {
+      const data = saveToLocal.get('valine-newest-comments')
+      if (data) {
+        generateHtml(JSON.parse(data))
+      } else {
+        getComment()
+      }
+    }
+  }
+
+  newestCommentInit()
+  document.addEventListener('pjax:complete', newestCommentInit)
+})</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/gh/metowolf/MetingJS@1.2/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = [
+  'title',
+  '#config-diff',
+  '#body-wrap',
+  '#rightside-config-hide',
+  '#rightside-config-show',
+  '.js-pjax'
+]
+
+if (false) {
+  pjaxSelectors.unshift('meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]')
+}
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"]):not([href="/music/"]):not([href="/no-pjax/"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  if (typeof gtag === 'function') {
+    gtag('config', '', {'page_path': window.location.pathname});
+  }
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // Analytics
+  if (false) {
+    MtaH5.pgv()
+  }
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+
+document.addEventListener('pjax:send', function () {
+  typeof preloader === 'object' && preloader.initLoading()
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
